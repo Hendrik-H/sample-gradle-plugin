@@ -1,0 +1,41 @@
+apply plugin: 'groovy'
+apply plugin: 'maven-publish'
+apply plugin: 'java-gradle-plugin'
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+task createExtraTestRuntimeData(dependsOn: 'jar') {
+    def outputDir = file("$buildDir/$name")
+
+    outputs.dir outputDir
+
+    doLast {
+        outputDir.mkdirs()
+        file("$outputDir/build-libs-path.txt").text = file("$buildDir/$libsDirName")
+    }
+}
+
+dependencies {
+    compile localGroovy()
+    
+    testCompile gradleTestKit()
+    testCompile ('org.spockframework:spock-core:1.0-groovy-2.4') {
+        exclude module: 'groovy-all'
+    }
+    
+    testRuntime files(createExtraTestRuntimeData)
+}
+
+group = 'sample'
+version = '0.1.0-SNAPSHOT'
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+}
